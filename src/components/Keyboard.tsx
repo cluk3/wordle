@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal } from "solid-js";
+import { createEffect, createMemo, createSignal, For } from "solid-js";
 import { buildHint } from "~/utils";
 import { handleLetter, handleBackspace, handleEnter, store } from "~/store";
 import type { Component, ParentComponent } from "solid-js";
@@ -65,42 +65,45 @@ const KeyButton: ParentComponent<{
   );
 };
 
-const Keyboard: Component<{
-  attempts: string[][];
-  word: string;
-}> = (props) => {
+const Keyboard: Component = () => {
+  const attempts = createMemo(() =>
+    store.attempts.slice(0, store.currentAttempt)
+  );
   const hints = createMemo(() => {
-    console.log("hints()");
-    return props.attempts.map((attempt) => buildHint(props.word, attempt));
+    return attempts().map((attempt) => buildHint(store.word, attempt));
   });
 
   return (
     <div class="flex flex-col gap-3 max-w-[460px] mx-auto">
       <div class="flex gap-1 justify-center">
-        {firstRow.map((item) => {
-          return (
-            <KeyButton
-              hasBeenGuessed={hasBeenGuessed(props.attempts, item)}
-              isYellow={isYellow(hints(), item)}
-              isGreen={isGreen(hints(), item)}
-            >
-              {item}
-            </KeyButton>
-          );
-        })}
+        <For each={firstRow}>
+          {(item) => {
+            return (
+              <KeyButton
+                hasBeenGuessed={hasBeenGuessed(attempts(), item)}
+                isYellow={isYellow(hints(), item)}
+                isGreen={isGreen(hints(), item)}
+              >
+                {item}
+              </KeyButton>
+            );
+          }}
+        </For>
       </div>
       <div class="flex gap-1 justify-center">
-        {secondRow.map((item) => {
-          return (
-            <KeyButton
-              hasBeenGuessed={hasBeenGuessed(props.attempts, item)}
-              isYellow={isYellow(hints(), item)}
-              isGreen={isGreen(hints(), item)}
-            >
-              {item}
-            </KeyButton>
-          );
-        })}
+        <For each={secondRow}>
+          {(item) => {
+            return (
+              <KeyButton
+                hasBeenGuessed={hasBeenGuessed(attempts(), item)}
+                isYellow={isYellow(hints(), item)}
+                isGreen={isGreen(hints(), item)}
+              >
+                {item}
+              </KeyButton>
+            );
+          }}
+        </For>
       </div>
       <div class="flex gap-1 justify-center">
         <button
@@ -111,17 +114,20 @@ const Keyboard: Component<{
         >
           enter
         </button>
-        {thirdRow.map((item) => {
-          return (
-            <KeyButton
-              hasBeenGuessed={hasBeenGuessed(props.attempts, item)}
-              isYellow={isYellow(hints(), item)}
-              isGreen={isGreen(hints(), item)}
-            >
-              {item}
-            </KeyButton>
-          );
-        })}
+        <For each={thirdRow}>
+          {(item) => {
+            return (
+              <KeyButton
+                hasBeenGuessed={hasBeenGuessed(attempts(), item)}
+                isYellow={isYellow(hints(), item)}
+                isGreen={isGreen(hints(), item)}
+              >
+                {item}
+              </KeyButton>
+            );
+          }}
+        </For>
+
         <button
           class={
             "flex-[0_1_96px] item-center justify-center px-2 py-3 rounded uppercase font-semibold select-none text-xl bg-gray-200 border-2 hover:border-gray-300 active:bg-gray-300"

@@ -14,6 +14,10 @@ import Stats from "./Stats";
 
 import { Presence } from "solid-motionone";
 
+function isLetter(letter: string) {
+  return letter.length === 1 && letter.match(/[a-z]/i);
+}
+
 const handleKeyDown = (event: KeyboardEvent) => {
   if (event.key === "Backspace") {
     handleBackspace();
@@ -24,13 +28,12 @@ const handleKeyDown = (event: KeyboardEvent) => {
   }
 
   if (
-    event.keyCode > 64 &&
-    event.keyCode < 91 &&
+    isLetter(event.key) &&
     !event.altKey &&
     !event.ctrlKey &&
     !event.metaKey
   ) {
-    handleLetter(event.key);
+    handleLetter(event.key.toLowerCase());
   }
 };
 
@@ -57,8 +60,8 @@ export default function Wordle() {
               return (
                 <Attempt
                   attempt={attempt}
-                  word={store.word}
                   isDraft={index() > store.currentAttempt - 1}
+                  isLastAttempt={index() === store.currentAttempt - 1}
                   animateWrong={
                     store.animateWrong && index() === store.currentAttempt
                   }
@@ -74,10 +77,7 @@ export default function Wordle() {
           </For>
         </div>
       </div>
-      <Keyboard
-        attempts={store.attempts.slice(0, store.currentAttempt)}
-        word={store.word}
-      />
+      <Keyboard />
       <Presence>
         <Show when={store.toast}>
           <Toast>{store.toast}</Toast>

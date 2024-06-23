@@ -1,15 +1,12 @@
 import type { Component } from "solid-js";
-import { store, restartGame } from "~/store";
-import { createSignal, createEffect } from "solid-js";
+import { store, restartGame, setShowStats } from "~/store";
+import { createEffect, Index } from "solid-js";
 
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger,
 } from "~/components/ui/dialog";
 import { Button } from "./ui/button";
 
@@ -36,7 +33,11 @@ const Bar: Component<{
   const width = Math.ceil((distribution / maxDistribution) * 100);
   return (
     <div
-      class="bg-gray-600 h-4 text-white text-xs flex justify-end min-w-4 px-1"
+      class={`h-4 text-white text-xs flex justify-end min-w-4 px-1 ${
+        props.value === store.currentAttempt && store.gameFinished
+          ? "bg-green-600"
+          : "bg-gray-600"
+      }`}
       style={`
         width: ${width}%;
       `}
@@ -46,42 +47,34 @@ const Bar: Component<{
   );
 };
 
+createEffect(() => {
+  if (store.gameFinished) {
+    setTimeout(() => {
+      setShowStats(true);
+    }, 2000);
+  }
+});
+
 const Stats: Component<{}> = (props) => {
-  const [isOpen, setIsOpen] = createSignal(false);
-  createEffect(() => {
-    if (store.gameFinished) {
-      setTimeout(() => {
-        setIsOpen(true);
-      }, 2000);
-    }
-  });
   return (
-    <Dialog open={isOpen()} onOpenChange={setIsOpen}>
-      <DialogContent>
-        <DialogHeader>
-          {store.gameWon ? "You win!" : "You lost :("}
-        </DialogHeader>
-        <div class="grid grid-cols-[auto,1fr] gap-2 justify-center items-center">
-          <div>1</div>
-          <Bar value={1} />
-          <div>2</div>
-          <Bar value={2} />
-          <div>3</div>
-          <Bar value={3} />
-          <div>4</div>
-          <Bar value={4} />
-          <div>5</div>
-          <Bar value={5} />
-          <div>6</div>
-          <Bar value={6} />
-          <div>Lost</div>
-          <Bar value={7} />
+    <Dialog open={store.showStats} onOpenChange={setShowStats}>
+      <DialogContent onOpenAutoFocus={(event) => event.preventDefault()}>
+        <DialogHeader>Your stats</DialogHeader>
+        <div class="grid grid-cols-[auto,1fr] gap-2 justify-center items-center max-w-[60%]">
+          <Index each={Array(7)}>
+            {(_, index) => (
+              <>
+                <div class="text-sm">{index === 6 ? "Lost" : index + 1}</div>
+                <Bar value={index + 1} />
+              </>
+            )}
+          </Index>
         </div>
         <DialogFooter>
           <Button
             onClick={() => {
               restartGame();
-              setIsOpen(false);
+              setShowStats(false);
             }}
           >
             New Game

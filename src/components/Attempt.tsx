@@ -2,13 +2,14 @@ import { For, createEffect, createSignal } from "solid-js";
 import { buildHint } from "~/utils";
 import { Motion } from "solid-motionone";
 import type { Component } from "solid-js";
+import { store } from "~/store";
 
 const Attempt: Component<{
   attempt: string[];
-  word: string;
   isDraft: boolean;
   animateWrong: boolean;
   resetAnimateWrong: () => void;
+  isLastAttempt: boolean;
 }> = (props) => {
   return (
     <Motion.div
@@ -21,25 +22,28 @@ const Attempt: Component<{
     >
       <For each={props.attempt}>
         {(letter, index) => {
-          let hint = buildHint(props.word, props.attempt)[index()];
+          let hint = buildHint(store.word, props.attempt)[index()];
           const [go, setGo] = createSignal(false);
 
           createEffect(() => {
             if (!props.isDraft) {
-              setTimeout(() => setGo(true), index() * 400 + 200);
+              setTimeout(
+                () => setGo(true),
+                props.isLastAttempt ? index() * 400 + 200 : 0
+              );
             }
           });
 
           return (
             <Motion.div
-              animate={!props.isDraft ? { scaleY: [1, 0, 1] } : undefined}
+              animate={props.isLastAttempt ? { scaleY: [1, 0, 1] } : undefined}
               transition={{
                 delay: index() * 0.4,
                 duration: 0.4,
               }}
             >
               <Motion.div
-                class="size-10 flex items-center justify-center text-xl uppercase select-none"
+                class="size-14 flex items-center justify-center text-4xl font-bold uppercase select-none"
                 classList={{
                   "bg-gray-400": go() && !props.isDraft && !hint.inWord,
                   "bg-yellow-400":
@@ -50,7 +54,7 @@ const Attempt: Component<{
                   "border-slate-400": !letter,
                   "border-slate-800": !!letter,
                 }}
-                animate={letter ? { scaleY: [1.1, 1] } : undefined}
+                animate={letter ? { scale: [1.2, 1] } : undefined}
               >
                 {letter}
               </Motion.div>

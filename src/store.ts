@@ -1,8 +1,8 @@
 import { createStore, produce } from "solid-js/store";
 import { guessableWords, allWords } from "~/dictionary";
-import { makePersisted } from "@solid-primitives/storage";
+import { makePersisted, cookieStorage } from "@solid-primitives/storage";
 
-const greeting = [
+const GREETINGS = [
   "Genius!",
   "Magnificient",
   "Incredible",
@@ -10,8 +10,6 @@ const greeting = [
   "Great",
   "Good",
 ];
-
-console.log(guessableWords.length);
 
 const initialState = () => ({
   currentAttempt: 0,
@@ -30,11 +28,15 @@ const initialState = () => ({
     ["", "", "", "", ""],
   ],
   stats: [] as number[],
+  showStats: false,
 });
 
 export const [store, setStore] = makePersisted(createStore(initialState()), {
   name: "wordle",
 });
+
+export const setShowStats = (showStats: boolean) =>
+  setStore({ ...store, showStats });
 
 export const setToast = (text: string, duration = 2000) => {
   setStore({
@@ -88,20 +90,21 @@ export const handleEnter = () => {
           state.gameFinished = true;
           state.gameWon = true;
           setTimeout(() => {
-            setToast(greeting[state.currentAttempt], 3000);
+            setToast(GREETINGS[state.currentAttempt], 3000);
           }, 2000);
-          state.stats.push(state.currentAttempt + 1);
           state.currentAttempt++;
           state.currentLetter = 0;
+          state.stats.push(state.currentAttempt);
+          // store.showStats = true;
         } else if (!allWords.includes(attempt)) {
           setToast("Not in word list");
           state.animateWrong = true;
         } else if (state.currentAttempt > 4) {
-          state.gameFinished = true;
-          state.currentAttempt++;
+          state.currentAttempt = state.currentAttempt + 2;
           state.currentLetter = 0;
           setToast(state.word);
-          state.stats.push(state.currentAttempt + 1);
+          state.stats.push(state.currentAttempt);
+          state.gameFinished = true;
         } else {
           state.currentAttempt++;
           state.currentLetter = 0;
