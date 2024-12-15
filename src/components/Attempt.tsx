@@ -22,8 +22,12 @@ const Attempt: Component<{
     >
       <For each={props.attempt}>
         {(letter, index) => {
-          let hint = buildHint(store.word, props.attempt)[index()];
           const [go, setGo] = createSignal(false);
+          const [hint, setHint] = createSignal({
+            letter,
+            inWord: false,
+            inPosition: false,
+          });
 
           createEffect(() => {
             if (!props.isDraft) {
@@ -34,29 +38,60 @@ const Attempt: Component<{
             }
           });
 
+          createEffect(() => {
+            if (!props.isDraft) {
+              setHint(buildHint(store.word, props.attempt)[index()]);
+            }
+          });
+
           return (
             <Motion.div
-              animate={props.isLastAttempt ? { scaleY: [1, 0, 1] } : undefined}
+              animate={
+                props.isLastAttempt
+                  ? {
+                      scaleY: [1, 0, 1],
+                      boxShadow:
+                        store.gameWon || hint().inPosition
+                          ? [
+                              "0px 0px 0px 0px #4ade80",
+                              "0px 0px 60px 12px #4ade80",
+                              "0px 0px 0px 0px #4ade80",
+                            ]
+                          : "",
+                    }
+                  : undefined
+              }
               transition={{
-                delay: index() * 0.4,
-                duration: 0.4,
+                scaleY: {
+                  delay: index() * 0.4,
+                  duration: 0.4,
+                  easing: "linear",
+                },
+                boxShadow: {
+                  delay: 2,
+                  duration: 1,
+                  easing: "ease-in-out",
+                },
               }}
             >
               <Motion.div
                 class="size-14 flex items-center justify-center text-4xl font-bold uppercase select-none"
                 classList={{
-                  "bg-gray-400": go() && !props.isDraft && !hint.inWord,
-                  "bg-yellow-400":
-                    go() && !props.isDraft && hint.inWord && !hint.inPosition,
-                  "bg-green-400": go() && !props.isDraft && hint.inPosition,
+                  "bg-slate-400":
+                    go() &&
+                    !props.isDraft &&
+                    !hint().inWord &&
+                    !hint().inPosition,
+                  "bg-yellow-400": go() && !props.isDraft && hint().inWord,
+                  "bg-green-400": go() && !props.isDraft && hint().inPosition,
                   "text-white": go() && !props.isDraft,
                   border: props.isDraft || !go(),
-                  "border-slate-400": !letter,
-                  "border-slate-800": !!letter,
+                  "border-slate-400": !hint().letter,
+                  "border-slate-800": !!hint().letter,
                 }}
-                animate={letter ? { scale: [1.2, 1] } : undefined}
+                animate={hint().letter ? { scale: [1.2, 1] } : undefined}
               >
-                {letter}
+                {hint().letter}
               </Motion.div>
             </Motion.div>
           );

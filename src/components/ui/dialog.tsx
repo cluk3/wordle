@@ -4,7 +4,7 @@ import { splitProps } from "solid-js";
 import * as DialogPrimitive from "@kobalte/core/dialog";
 import { PolymorphicProps } from "@kobalte/core/polymorphic";
 
-import { cn } from "~/lib/utils";
+import { cn } from "~/utils";
 
 const Dialog = DialogPrimitive.Root;
 const DialogTrigger = DialogPrimitive.Trigger;
@@ -56,7 +56,7 @@ const DialogContent = <T extends ValidComponent = "div">(
       <DialogOverlay />
       <DialogPrimitive.Content
         class={cn(
-          "fixed left-1/2 top-1/2 z-50 grid w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-6 shadow-lg duration-200 data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0 data-[closed]:zoom-out-95 data-[expanded]:zoom-in-95 data-[closed]:slide-out-to-left-1/2 data-[closed]:slide-out-to-top-[48%] data-[expanded]:slide-in-from-left-1/2 data-[expanded]:slide-in-from-top-[48%] sm:rounded-lg",
+          "fixed left-1/2 top-1/2 z-50 grid w-11/12 md:w-full max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-6 shadow-lg duration-200 data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0 data-[closed]:zoom-out-95 data-[expanded]:zoom-in-95 data-[closed]:slide-out-to-left-1/2 data-[closed]:slide-out-to-top-[48%] data-[expanded]:slide-in-from-left-1/2 data-[expanded]:slide-in-from-top-[48%] sm:rounded-lg",
           props.class
         )}
         {...rest}
@@ -88,7 +88,7 @@ const DialogHeader: Component<ComponentProps<"div">> = (props) => {
   return (
     <div
       class={cn(
-        "flex flex-col text-lg space-y-1.5 text-center sm:text-left",
+        "flex flex-col text-xl font-semibold space-y-1.5 text-center sm:text-left",
         props.class
       )}
       {...rest}

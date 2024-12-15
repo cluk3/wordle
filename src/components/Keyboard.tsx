@@ -1,5 +1,5 @@
 import { createEffect, createMemo, createSignal, For } from "solid-js";
-import { buildHint } from "~/utils";
+import { buildHint, cn } from "~/utils";
 import { handleLetter, handleBackspace, handleEnter, store } from "~/store";
 import type { Component, ParentComponent } from "solid-js";
 import type { Hint } from "~/utils";
@@ -7,6 +7,12 @@ import type { Hint } from "~/utils";
 const firstRow = ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"];
 const secondRow = ["a", "s", "d", "f", "g", "h", "j", "k", "l"];
 const thirdRow = ["z", "x", "c", "v", "b", "n", "m"];
+const buttonStyle = [
+  "flex flex-[1_1_42px] text-lg text-slate-800 items-center justify-center px-2 py-3 rounded uppercase",
+  "font-semibold select-none bg-slate-200 hover:bg-slate-300 active:bg-slate-400",
+  "outline-transparent focus-visible:outline-purple-600 focus-visible:shadow-md focus-visible:shadow-purple-600",
+  "disabled:bg-slate-200 disabled:hover:bg-slate-200 disabled:active:bg-slate-200 disabled:text-slate-400",
+].join(" ");
 
 const KeyButton: ParentComponent<{
   hasBeenGuessed: boolean;
@@ -48,17 +54,18 @@ const KeyButton: ParentComponent<{
 
   return (
     <button
-      class={
-        "flex flex-[0_1_42px] item-center justify-center px-2 py-3 rounded uppercase font-semibold select-none border-2 hover:border-gray-300 active:bg-gray-300"
-      }
-      classList={{
-        "bg-gray-600": goGuess(),
-        "bg-yellow-400": goYellow(),
-        "bg-green-400": goGreen(),
-        "text-white": goGuess() || goYellow() || goGreen(),
-        "bg-gray-200": !goGuess() && !goYellow() && !goGreen(),
-      }}
+      class={cn(
+        buttonStyle,
+        goGuess() &&
+          "bg-slate-600 text-white disabled:bg-slate-400 disabled:hover:bg-slate-400 disabled:active:bg-slate-400 disabled:text-slate-50",
+        goGreen() &&
+          "bg-green-400 text-white hover:bg-green-500 active:bg-green-600 disabled:bg-green-300 disabled:hover:bg-green-300 disabled:active:bg-green-300 disabled:text-slate-50"
+      )}
       onClick={() => handleLetter(props.children as string)}
+      disabled={
+        store.gameFinished ||
+        store.attempts[store.currentAttempt]?.at(-1) !== ""
+      }
     >
       {props.children}
     </button>
@@ -74,7 +81,7 @@ const Keyboard: Component = () => {
   });
 
   return (
-    <div class="flex flex-col gap-3 max-w-[460px] mx-auto">
+    <div class="flex flex-col gap-3 max-w-[640px] mx-auto">
       <div class="flex gap-1 justify-center">
         <For each={firstRow}>
           {(item) => {
@@ -107,10 +114,9 @@ const Keyboard: Component = () => {
       </div>
       <div class="flex gap-1 justify-center">
         <button
-          class={
-            "flex-[0_1_96px] px-2 py-3 rounded uppercase font-semibold select-none text-[12px] bg-gray-200 font-mono border-2 hover:border-gray-300 active:bg-gray-300"
-          }
+          class={cn(buttonStyle, "flex-[1_1_96px] text-[12px] font-mono")}
           onClick={handleEnter}
+          disabled={store.gameFinished}
         >
           enter
         </button>
@@ -129,10 +135,9 @@ const Keyboard: Component = () => {
         </For>
 
         <button
-          class={
-            "flex-[0_1_96px] item-center justify-center px-2 py-3 rounded uppercase font-semibold select-none text-xl bg-gray-200 border-2 hover:border-gray-300 active:bg-gray-300"
-          }
+          class={cn(buttonStyle, "flex-[1_1_96px] text-xl")}
           onClick={handleBackspace}
+          disabled={store.gameFinished}
         >
           ⌫
         </button>

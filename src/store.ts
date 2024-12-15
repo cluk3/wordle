@@ -1,6 +1,7 @@
 import { createStore, produce } from "solid-js/store";
 import { guessableWords, allWords } from "~/dictionary";
-import { makePersisted, cookieStorage } from "@solid-primitives/storage";
+import { makePersisted } from "@solid-primitives/storage";
+import { encodeWord } from "./utils";
 
 const GREETINGS = [
   "Genius!",
@@ -11,6 +12,24 @@ const GREETINGS = [
   "Good",
 ];
 
+const generateWord = (alreadyGuessed: string[] = []) => {
+  while (true) {
+    const word =
+      guessableWords[Math.floor(Math.random() * guessableWords.length)];
+    if (!alreadyGuessed.includes(word)) return word;
+  }
+};
+
+type Stats = [
+  string[],
+  string[],
+  string[],
+  string[],
+  string[],
+  string[],
+  string[]
+];
+
 const initialState = () => ({
   currentAttempt: 0,
   toast: "",
@@ -18,7 +37,7 @@ const initialState = () => ({
   gameFinished: false,
   animateWrong: false,
   gameWon: false,
-  word: guessableWords[Math.floor(Math.random() * guessableWords.length)],
+  word: generateWord(),
   attempts: [
     ["", "", "", "", ""],
     ["", "", "", "", ""],
@@ -27,7 +46,7 @@ const initialState = () => ({
     ["", "", "", "", ""],
     ["", "", "", "", ""],
   ],
-  stats: [] as number[],
+  stats: [[], [], [], [], [], [], []] as Stats,
   showStats: false,
 });
 
@@ -51,11 +70,15 @@ export const setToast = (text: string, duration = 2000) => {
   }, duration);
 };
 
-export const restartGame = () => {
+export const restartGame = (word?: string) => {
   setStore({
     ...initialState(),
+    word: word || generateWord(store.stats.flat()),
     stats: store.stats,
   });
+
+  const encoded = encodeWord(store.word);
+  window.history.pushState(null, "", `/?w=${encoded}`);
 };
 
 export const handleLetter = (letter: string) => {
@@ -86,32 +109,41 @@ export const handleEnter = () => {
       produce((state) => {
         const attempt = state.attempts[state.currentAttempt].join("");
 
+        // Word guessed
         if (state.word === attempt) {
           state.gameFinished = true;
           state.gameWon = true;
           setTimeout(() => {
-            setToast(GREETINGS[state.currentAttempt], 3000);
+            setToast(GREETINGS[state.currentAttempt - 1], 3000);
           }, 2000);
           state.currentAttempt++;
           state.currentLetter = 0;
-          state.stats.push(state.currentAttempt);
-          // store.showStats = true;
+          state.stats[state.currentAttempt - 1].push(state.word);
+          setTimeout(() => {
+            state.showStats = true;
+          }, 4000);
+
+          // word doesn't exist
         } else if (!allWords.includes(attempt)) {
           setToast("Not in word list");
           state.animateWrong = true;
+
+          // all attempts are done, game lost
         } else if (state.currentAttempt > 4) {
           state.currentAttempt = state.currentAttempt + 2;
           state.currentLetter = 0;
           setToast(state.word);
-          state.stats.push(state.currentAttempt);
+          state.stats[state.currentAttempt - 1].push(state.word);
           state.gameFinished = true;
+
+          // word not guessed, next attempt
         } else {
           state.currentAttempt++;
           state.currentLetter = 0;
         }
       })
     );
-  } else {
+  } else if (!store.gameFinished && store.currentLetter < 5) {
     setToast("Not enough letters", 1500);
     setStore({
       ...store,

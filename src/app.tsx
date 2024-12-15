@@ -3,6 +3,7 @@ import { FileRoutes } from "@solidjs/start/router";
 import { Suspense } from "solid-js";
 import Nav from "~/components/Nav";
 import "./app.css";
+import Stats from "./components/Stats";
 
 export default function App() {
   return (
@@ -10,6 +11,7 @@ export default function App() {
       root={(props) => (
         <>
           <Nav />
+          <Stats />
           <Suspense>{props.children}</Suspense>
         </>
       )}
